@@ -3,7 +3,7 @@
 Starting in Battlefield 1 the game developer started to encrypt stuff.<br />
 This demo project will show how player-list and pointer decryption can be done.<br />
 This is based on information that I reverse engineered from the game.<br />
-For decryption the game uses the so-called "DispDispReqMessage" message which also serves the purpose to "hide" the actual decryption routines.<br />
+For decryption the game uses the so-called "DispDispReqMessage" message which also serves the purpose of "hiding" the actual decryption routines.<br />
 The decryption can also be done from an external program that is running in a different process.<br />
 
 ## Console output
