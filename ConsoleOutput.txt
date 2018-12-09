@@ -1,0 +1,98 @@
+pLocalPlayer = 0xE0AFA660
+pLocalPlayer->m_pName = "****************"
+-------------------- Player --------------------
+[0] pPlayer = 0x16FDF4C70
+[0] pPlayer->m_pName = "no-shot-jam"
+[0] pPlayer->GetSoldier() = 0x1C2A6BA40
+[0] GetTransform = { 11.054852, 53.172737, -299.113373 }
+[0] pSoldierEntity->ClientSoldierPrediction = 0x13261CAC0
+[0] pPredictedController->m_Position = { 11.049366, 53.226589, -299.161957 }
+-------------------- Player --------------------
+[1] pPlayer = 0x1788024C0
+[1] pPlayer->m_pName = "xXxZOLAxXx"
+[1] pPlayer->GetSoldier() = 0x170E4EFC0
+[1] GetTransform = { 1.976285, 50.102390, -140.628952 }
+[1] pSoldierEntity->ClientSoldierPrediction = 0x170E925D0
+[1] pPredictedController->m_Position = { 1.976285, 50.152390, -140.628952 }
+-------------------- Player --------------------
+[2] pPlayer = 0x16FDFAEE0
+[2] pPlayer->m_pName = "Quadsmoker"
+[2] pPlayer->GetSoldier() = 0x1CEBA4780
+[2] GetTransform = { -34.129765, 52.227119, -279.694305 }
+[2] pSoldierEntity->ClientSoldierPrediction = 0x1AF39FFC0
+[2] pPredictedController->m_Position = { -34.117317, 52.584160, -279.852570 }
+-------------------- Player --------------------
+[3] pPlayer = 0x13FAAB0D0
+[3] pPlayer->m_pName = "DoctorBalu"
+[3] pPlayer->GetSoldier() = 0x1CEB86280
+[3] GetTransform = { 71.248604, 51.659405, -133.938522 }
+[3] pSoldierEntity->ClientSoldierPrediction = 0x170F70DD0
+[3] pPredictedController->m_Position = { 71.279671, 51.729866, -133.903946 }
+-------------------- Player --------------------
+[4] pPlayer = 0xE0AFA660
+[4] pPlayer->m_pName = "*************"
+[4] pPlayer->GetSoldier() = 0x16CEF6840
+[4] GetTransform = { 78.161743, 52.505604, 3.626862 }
+[4] pSoldierEntity->ClientSoldierPrediction = 0x1374B1450
+[4] pPredictedController->m_Position = { 78.156250, 52.554688, 3.625000 }
+-------------------- Player --------------------
+[5] pPlayer = 0xE0341750
+[5] pPlayer->m_pName = "lFrontLINERl"
+[5] pPlayer->GetSoldier() = 0x1BE2F56D0
+[5] GetTransform = { 66.905113, 51.533611, -164.312790 }
+[5] pSoldierEntity->ClientSoldierPrediction = 0x17626BD30
+[5] pPredictedController->m_Position = { 66.919159, 51.571362, -164.212555 }
+-------------------- Player --------------------
+[6] pPlayer = 0x16DD4A340
+[6] pPlayer->m_pName = "Moench-Ly"
+[6] pPlayer->GetSoldier() = 0x1C46E4AE0
+[6] GetTransform = { 55.484104, 52.986141, -300.609436 }
+-------------------- Player --------------------
+[7] pPlayer = 0xE0332980
+[7] pPlayer->m_pName = "Crimefighter1234"
+[7] pPlayer->GetSoldier() = 0x1AF41DEE0
+[7] GetTransform = { 55.910763, 52.421612, -314.561890 }
+[7] pSoldierEntity->ClientSoldierPrediction = 0x1B5CA2290
+[7] pPredictedController->m_Position = { 55.895752, 52.476406, -314.598663 }
+-------------------- Player --------------------
+[8] pPlayer = 0xE0338BF0
+[8] pPlayer->m_pName = "Aslund"
+[8] pPlayer->GetSoldier() = 0x16D28D9B0
+[8] GetTransform = { -30.156403, 51.438007, -269.936340 }
+[8] pSoldierEntity->ClientSoldierPrediction = 0x1384F34A0
+[8] pPredictedController->m_Position = { -30.156403, 51.488007, -269.936340 }
+-------------------- Player --------------------
+[9] pPlayer = 0x1787CE490
+[9] pPlayer->m_pName = "MaDMaX9521"
+[9] pPlayer->GetSoldier() = 0x19B785430
+[9] GetTransform = { 98.647888, 50.535938, -121.655991 }
+[9] pSoldierEntity->ClientSoldierPrediction = 0x1AB161920
+[9] pPredictedController->m_Position = { 98.677773, 50.585594, -121.616585 }
+-------------------- Player --------------------
+[10] pPlayer = 0x1787680C0
+[10] pPlayer->m_pName = "mrz29"
+[10] pPlayer->GetSoldier() = 0x1C4810300
+[10] GetTransform = { 17.031252, 50.291664, -111.375526 }
+[10] pSoldierEntity->ClientSoldierPrediction = 0x1AF37C050
+[10] pPredictedController->m_Position = { 17.093220, 50.342236, -111.303276 }
+-------------------- Player --------------------
+[11] pPlayer = 0x17878E340
+[11] pPlayer->m_pName = "LuvBrnLessCmprs"
+[11] pPlayer->GetSoldier() = 0x13ABEFD50
+[11] GetTransform = { -36.597168, 51.532543, -229.420929 }
+[11] pSoldierEntity->ClientSoldierPrediction = 0x136DE8880
+[11] pPredictedController->m_Position = { -36.574318, 51.599659, -229.516312 }
+-------------------- Player --------------------
+[12] pPlayer = 0x1787945B0
+[12] pPlayer->m_pName = "kalinikos"
+[12] pPlayer->GetSoldier() = 0x1930B81F0
+[12] GetTransform = { -10.775034, 50.114063, -146.036713 }
+[12] pSoldierEntity->ClientSoldierPrediction = 0x137F125C0
+[12] pPredictedController->m_Position = { -10.737846, 50.153305, -145.938156 }
+-------------------- Player --------------------
+[13] pPlayer = 0x1787F95A0
+[13] pPlayer->m_pName = "FlippedPolarity"
+[13] pPlayer->GetSoldier() = 0x19B78E150
+[13] GetTransform = { 5.564723, 52.751648, -295.245514 }
+[13] pSoldierEntity->ClientSoldierPrediction = 0x19B7CA330
+[13] pPredictedController->m_Position = { 5.610135, 52.853485, -295.332581 }
