@@ -13,32 +13,32 @@ namespace fb
 {	
 
 	template< class T >
-    struct WeakToken
-    {
-    	T* m_realptr; //its value is: realptr + 8
-    	DWORD32 m_refcount;
-    };
-    template< class T > 
-    class WeakPtr
-    {
-    private:
-    	WeakToken<T>* m_ptr;
-    public:
-    	T* GetData() // << the function in question
-    	{
-    		if (!ValidPointer( m_ptr ))
-    			return NULL;
+	struct WeakToken
+	{
+		T* m_realptr; //its value is: realptr + 8
+		DWORD32 m_refcount;
+	};
+	template< class T > 
+	class WeakPtr
+	{
+	private:
+		WeakToken<T>* m_ptr;
+	public:
+		T* GetData() // << the function in question
+		{
+			if (!ValidPointer( m_ptr ))
+    				return NULL;
 
 			if (!ValidPointer( &m_ptr->m_realptr ))
-    			return NULL;
+    				return NULL;
      
-    		T* ptr = m_ptr->m_realptr;
-    		if (!ValidPointer(ptr) )
-    			return NULL;
+			T* ptr = m_ptr->m_realptr;
+			if (!ValidPointer(ptr) )
+    				return NULL;
      
-    		return (T*)((DWORD_PTR)(ptr) - 0x8);
-    	}
-    };
+			return (T*)((DWORD_PTR)(ptr) - 0x8);
+		}
+	};
 
 	template< class T > class EncryptedPtr
 	{
@@ -119,15 +119,19 @@ namespace fb
 			DWORD_PTR* vtable = *(DWORD_PTR**)this;
 			if ( (DWORD_PTR)vtable < 0x140000000 || (DWORD_PTR)vtable > 0x14FFFFFFF ) return nullptr;
 
-			BYTE* fncGetCharacterEntity = (BYTE*)vtable[1]; 
-			if ( (DWORD_PTR)fncGetCharacterEntity < 0x140000000 || (DWORD_PTR)fncGetCharacterEntity > 0x14FFFFFFF ) return nullptr;
-
-			if (fncGetCharacterEntity[0] == 0xE9) //a jump, resolve it
+			static DWORD SoldierOffset = NULL;
+			if (SoldierOffset == NULL)
 			{
-				__int32 Offset = *(__int32*)&fncGetCharacterEntity[1];
-				fncGetCharacterEntity = &fncGetCharacterEntity[1] + Offset + sizeof(__int32);
+				BYTE* fncGetCharacterEntity = (BYTE*)vtable[1]; 
+				if ( (DWORD_PTR)fncGetCharacterEntity < 0x140000000 || (DWORD_PTR)fncGetCharacterEntity > 0x14FFFFFFF ) return nullptr;
+
+				if (fncGetCharacterEntity[0] == 0xE9) //a jump, resolve it
+				{
+					__int32 Offset = *(__int32*)&fncGetCharacterEntity[1];
+					fncGetCharacterEntity = &fncGetCharacterEntity[1] + Offset + sizeof(__int32);
+				}
+				SoldierOffset = *(DWORD*)&fncGetCharacterEntity[3]; //48 8B 81 38 1D 00 00	mov     rax, [rcx+1D38h]
 			}
-			DWORD SoldierOffset = *(DWORD*)&fncGetCharacterEntity[3]; //48 8B 81 38 1D 00 00	mov     rax, [rcx+1D38h]
 			WeakPtr<ClientSoldierEntity> m_soldier = *(WeakPtr<ClientSoldierEntity>*)( (DWORD_PTR)this + SoldierOffset ) ;
 
 			return m_soldier.GetData();
