@@ -10,7 +10,7 @@ The decryption can also be done from an external program that is running in a di
 ![Demo pic](https://raw.githubusercontent.com/Speedi13/BFV-Decryption/master/ConsoleOutputScreenshot.png)
 <br>
 [ConsoleOutput.txt](https://github.com/Speedi13/BFV-Decryption/blob/master/ConsoleOutput.txt)
-## Playerlist decryption code
+## Player-list decryption code
 ```cpp
 fb::ClientPlayer* GetPlayerById( int id )
 {
@@ -66,6 +66,7 @@ _QWORD __fastcall sub_1416F51D0(_QWORD RCX )
 ```
 
 ## Pointer decryption code
+The pointer key is usually the start address of the class that contains the encrypted pointer
 ```cpp
 void* DecryptPointer( DWORD64 EncryptedPtr, DWORD64 PointerKey )
 {
