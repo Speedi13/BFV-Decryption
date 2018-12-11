@@ -81,7 +81,8 @@ namespace fb
 	public:
 		void* vtable;
 		void* m_characterPhyEntity; //0x0008 
-		Vec4 m_Position;
+		char _0x0010[128];
+		Vec4 m_Position; //0x0090 
 	};
 
 	class ClientSoldierEntity
