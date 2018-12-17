@@ -15,7 +15,9 @@ _QWORD __fastcall sub_1416F4410(_QWORD RCX, _QWORD RDX)
 
 	if ( RAX > 0x140000000 && RAX < 0x14FFFFFFF )
 		return sub_1416F51D0( RDX );
-
+	
+	//just to make sure nobody gets confused this function is a window-API
+	//https://msdn.microsoft.com/en-us/library/bb432242(v=vs.85).aspx
 	return (_QWORD)DecodePointer( (void*)RDX );
 }
  
