@@ -78,7 +78,7 @@ DWORD WINAPI DllThread(PVOID pThreadParameter)
 
 			printf("[%i] GetTransform = { %f, %f, %f }\n",i,transform.trans.x,transform.trans.y,transform.trans.z);
 
-			fb::ClientSoldierPrediction* pPredictedController = pSoldierEntity->GetPredictedController().GetPtr( pSoldierEntity );
+			fb::ClientSoldierPrediction* pPredictedController = pSoldierEntity->GetPredictedController().GetPtr( /*key: pSoldierEntity*/ );
 			if (!ValidPointer(pPredictedController)) continue;
 			printf("[%i] pSoldierEntity->ClientSoldierPrediction = 0x%I64X\n",i,pPredictedController);
 			printf("[%i] pPredictedController->m_Position = { %f, %f, %f }\n",i,pPredictedController->m_Position.x,pPredictedController->m_Position.y,pPredictedController->m_Position.z);
