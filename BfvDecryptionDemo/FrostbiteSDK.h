@@ -44,11 +44,12 @@ namespace fb
 	{
 	public:
 		DWORD64 m_encryptedPtr;
+		DWORD64 m_pointerKey;
 
 	public:
-		T* GetPtr( void* key )
+		T* GetPtr( )
 		{
-			return (T*)( DecryptPointer( this->m_encryptedPtr, (DWORD64)(key) ) );
+			return (T*)( DecryptPointer( this->m_encryptedPtr, (DWORD64)(this->m_pointerKey) ) );
 		}
 	};
 
