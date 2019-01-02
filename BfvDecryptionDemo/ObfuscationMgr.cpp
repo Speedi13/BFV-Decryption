@@ -106,7 +106,7 @@ hashtable_iterator<_QWORD> *__fastcall hashtable_find(hashtable<_QWORD>* table, 
 		while ( key != node->mValue.first )
 		{
 			node = node->mpNext;
-			if ( !node || ValidPointer(node) 
+			if ( !node || !ValidPointer(node) 
 				)
 				goto LABEL_4;
 		}
