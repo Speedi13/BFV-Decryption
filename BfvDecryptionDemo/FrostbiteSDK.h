@@ -1,8 +1,8 @@
 #pragma once
 #include <Windows.h>
 
-#define OFFSET_CLIENTGAMECONTEXT 0x1443947D0
-#define OFFSET_ObfuscationMgr 0x144057520
+#define OFFSET_CLIENTGAMECONTEXT 0x1443FEC80
+#define OFFSET_ObfuscationMgr 0x1440BBA90
 
 #define ValidPointer( pointer ) ( pointer != NULL && (DWORD_PTR)pointer >= 0x10000 && (DWORD_PTR)pointer < 0x000F000000000000 /*&& some other checks*/ )
 
