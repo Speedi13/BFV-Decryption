@@ -10,6 +10,27 @@ The decryption can also be done from an external program that is running in a di
 ![Demo pic](https://raw.githubusercontent.com/Speedi13/BFV-Decryption/master/ConsoleOutputScreenshot.png)
 <br>
 [ConsoleOutput.txt](https://github.com/Speedi13/BFV-Decryption/blob/master/ConsoleOutput.txt)
+
+## Note for external cheats
+So its 2019 if you still use a shitty external in c# you can do the following:<br />
+&nbsp;&nbsp;	Before you join any server make sure your external is running.<br />
+&nbsp;&nbsp;	You need to keep the UpdateTimer inside the ObfuscationMgr below 24000<br />
+&nbsp;&nbsp;	then the ObfuscationMgr will NEVER activate the sophisticated multiplayer encryption!<br />
+&nbsp;&nbsp;	For the singleplayer encryption look the function ``PointerXorSinglePlayer``<br />
+```cpp
+void TrickObfuscationMgr()
+{
+	_QWORD pObfuscationMgr = *(_QWORD*)OFFSET_ObfuscationMgr;
+	if (!ValidPointer(pObfuscationMgr)) return;
+
+	if ( *(__int64*)( pObfuscationMgr + 0x108 ) != NULL )
+		MessageBox( NULL, "u noob! Run ur shit before joining a server!", NULL, 16 );
+
+	//pObfuscationMgr->m_dwUpdateTimer = 0
+	*(__int64*)( pObfuscationMgr + 0xF0 ) = 0ui64; 
+}
+```
+
 ## Player-list decryption code
 ```cpp
 fb::ClientPlayer* GetPlayerById( int id )
@@ -39,31 +60,56 @@ fb::ClientPlayer* EncryptedPlayerMgr__GetPlayer( QWORD EncryptedPlayerMgr, int i
 {
 	_QWORD XorValue1 = *(_QWORD *)(EncryptedPlayerMgr + 0x20) ^ *(_QWORD *)(EncryptedPlayerMgr + 8);
   
-	_QWORD XorValue2 = sub_1416F4410( *(_QWORD *)(EncryptedPlayerMgr + 0x28), *(_QWORD *)(EncryptedPlayerMgr + 0x10) );
+	_QWORD XorValue2 = PointerXor( *(_QWORD *)(EncryptedPlayerMgr + 0x28), *(_QWORD *)(EncryptedPlayerMgr + 0x10) );
   
 	_QWORD Player = XorValue1 ^ *(_QWORD *)( XorValue2 + 8 * id);
   
 	return (fb::ClientPlayer*)Player;
 }
-_QWORD __fastcall sub_1416F4410(_QWORD RCX, _QWORD RDX)
+__int64 __fastcall PointerXorMultiplayer(__int64 ValueToXor /*RCX*/, __int64 EncryptedBuffer /*RDX*/, __int64 EncryptedDeviceContext /*R8*/ )
 {
-	//decrypting the function address to call:
-	//RAX = ( *(_QWORD *)(RCX + 0xD8) ^ *(_QWORD *)(RCX + 0xF8) )
-	//RCX = RDX
-	//jmp RAX
-	DWORD64 RAX = ( *(_QWORD *)(RCX + 0xD8) ^ *(_QWORD *)(RCX + 0xF8) );
-	if (!ValidPointer(RAX)) return NULL;
+	__int64 XorD3D11 = 0xAB541E6F771275BCui64;
 
-	if ( RAX > 0x140000000 && RAX < 0x14FFFFFFF )
-		return sub_1416F51D0( RDX );
+	ID3D11DeviceContext* pDeviceContext = (ID3D11DeviceContext*)( EncryptedDeviceContext ^ XorD3D11 );
+	ID3D11Buffer* pBuffer = (ID3D11Buffer*)( EncryptedBuffer ^ XorD3D11 );
 
-	//just to make sure nobody gets confused this function is a window-API
-	//https://msdn.microsoft.com/en-us/library/bb432242(v=vs.85).aspx
-	return (_QWORD)DecodePointer( (void*)RDX );
+	D3D11_MAPPED_SUBRESOURCE MappedSubResource = {0};
+
+	HRESULT hResult = pDeviceContext->Map( pBuffer, NULL, D3D11_MAP_READ, NULL, &MappedSubResource );
+	if ( !SUCCEEDED(hResult) || !MappedSubResource.pData )
+		return ValueToXor;
+
+	__int64 XorKey = *(__int64 *)MappedSubResource.pData;
+
+	pDeviceContext->Unmap( pBuffer, NULL );
+
+	return ValueToXor ^ XorKey;
 }
-_QWORD __fastcall sub_1416F51D0(_QWORD RCX )
+
+__int64 __fastcall PointerXorSinglePlayer(__int64 RCX )
 {
-	return RCX ^ (_QWORD)(0x598447EFD7A36912);
+	return RCX ^ 0x598447EFD7A36912i64;
+}
+_QWORD __fastcall PointerXor(_QWORD RCX, _QWORD RDX)
+{
+//original function code from sub_1415780F0
+//RAX = ( *(_QWORD *)(RCX + 0xD8) ^ *(_QWORD *)(RCX + 0xF8) )
+//RCX = RDX
+//RDX = *(_QWORD *)(RCX + 0x100)
+//R8  = *(_QWORD *)(RCX + 0x108)
+//jmp RAX
+
+	_QWORD pObfuscationMgr = RCX - 8;
+
+	_QWORD EncryptedBuffer = *(_QWORD *)(pObfuscationMgr + 0x108);
+	_QWORD EncryptedDeviceContext = *(_QWORD *)(pObfuscationMgr + 0x110);
+
+	DWORD64 DecryptFunction = ( *(_QWORD *)(pObfuscationMgr + 0xE0) ^ *(_QWORD *)(pObfuscationMgr + 0x100) );
+	
+	if ( *(bool*)(pObfuscationMgr + 0xEC) != true )
+		return (_QWORD)PointerXorSinglePlayer( RDX );
+	
+	return (_QWORD)PointerXorMultiplayer( RDX, EncryptedBuffer, EncryptedDeviceContext );
 }
 ```
 
@@ -91,11 +137,7 @@ void* DecryptPointer( DWORD64 EncryptedPtr, DWORD64 PointerKey )
 		return nullptr;
 	_QWORD EncryptionKey = NULL;
  
-	_QWORD EncryptionKeyFnc = *(_QWORD *)(pObfuscationMgr + 0xE0 ) ^ *(_QWORD *)(pObfuscationMgr + 0x100);
-	if ( EncryptionKeyFnc > 0x140000000 && EncryptionKeyFnc < 0x14FFFFFFF )
-		EncryptionKey = sub_1416F51D0( (_QWORD)(iterator.mpNode->mValue.second) );
-	else
-		EncryptionKey = (_QWORD)DecodePointer( iterator.mpNode->mValue.second );
+	EncryptionKey = PointerXor( (_QWORD)pObfuscationMgr + 8, (_QWORD)(iterator.mpNode->mValue.second) );
  
 	EncryptionKey ^= (5 * EncryptionKey);
  
