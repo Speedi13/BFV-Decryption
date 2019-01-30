@@ -51,6 +51,9 @@ DWORD WINAPI DllThread(PVOID pThreadParameter)
 
 	while (true)
 	{
+		//if you want to use this code in your external cheat look at the function below
+		//TrickObfuscationMgr();
+		
 		Sleep( 1000 );
 	
 		__int32 maxPlayerCount = 70;
