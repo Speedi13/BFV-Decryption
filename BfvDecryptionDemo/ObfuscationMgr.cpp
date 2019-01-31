@@ -115,7 +115,7 @@ _QWORD __fastcall PointerXor(_QWORD RCX, _QWORD RDX)
 
 	DWORD64 DecryptFunction = ( *(_QWORD *)(pObfuscationMgr + 0xE0) ^ *(_QWORD *)(pObfuscationMgr + 0x100) );
 	
-	if ( *(bool*)(pObfuscationMgr + 0xEC) != true )
+	if ( *(bool*)(pObfuscationMgr + 0xEC) != true || EncryptedBuffer == NULL || EncryptedDeviceContext == NULL )
 		return (_QWORD)PointerXorSinglePlayer( RDX );
 	
 	return (_QWORD)PointerXorMultiplayer( RDX, EncryptedBuffer, EncryptedDeviceContext );
