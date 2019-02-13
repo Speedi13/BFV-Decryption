@@ -1,9 +1,13 @@
 #pragma once
 #include <Windows.h>
 
-#define OFFSET_CLIENTGAMECONTEXT 0x144449a50
-#define OFFSET_ObfuscationMgr 0x14410D050
+#define OFFSET_CLIENTGAMECONTEXT 0x144468F38
+#define OFFSET_ObfuscationMgr 0x14412BB90
 
+BYTE* FindPattern(BYTE* dwAddress, DWORD dwSize, BYTE* pbSig, char* szMask);
+void BypassObfuscationMgr();
+
+#define ResolveRelativePtr(Address) ((ULONG_PTR)(Address) + *(__int32*)(Address) + sizeof(__int32))
 #define ValidPointer( pointer ) ( pointer != NULL && (DWORD_PTR)pointer >= 0x10000 && (DWORD_PTR)pointer < 0x000F000000000000 /*&& some other checks*/ )
 
 extern DWORD OFFSET_PredictedController;
