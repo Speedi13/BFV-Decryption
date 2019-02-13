@@ -52,7 +52,7 @@ DWORD WINAPI DllThread(PVOID pThreadParameter)
 	while (true)
 	{
 		//if you want to use this code in your external cheat look at the function below
-		//TrickObfuscationMgr();
+		//BypassObfuscationMgr();
 		
 		Sleep( 1000 );
 	
@@ -110,7 +110,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	return TRUE;
 }
 
-
+//-------------------------------------------------------------------------------
 //https://github.com/learn-more/findpattern-bench/blob/master/patterns/kokole.h
 bool DataCompare(BYTE* pData, BYTE* bSig, char* szMask)
 {
@@ -131,3 +131,4 @@ BYTE* FindPattern(BYTE* dwAddress, DWORD dwSize, BYTE* pbSig, char* szMask)
 	}
 	return 0;
 }
+//-------------------------------------------------------------------------------
