@@ -45,16 +45,12 @@ struct ObfuscationMgr
 {
 	char _0x0000[224];
 	__int64 m_E0; //0x00E0 
-	char _0x00E8[4];
-	bool IsMultiPlayer; //0x00EC 
-	char _0x00ED[3];
-	__int64 m_dwUpdateTimer; //0x00F0 
-	char _0x00F8[8];
-	__int64 m_DecryptionFunction; //0x0100 
-	__int64 m_EncryptedBuffer; //0x0108 
-	__int64 m_EncryptedDeviceContext; //0x0110 
-	__int64 m_EncryptedDevice; //0x0118 
-	__int64 m_D3d11; //0x0120 
+	char _0x00E8[16];
+	__int64 m_DecryptionFunction; //0x00F8
+	__int64 m_EncryptedBuffer; //0x0100  		//encrypted ID3D11Buffer*
+	__int64 m_EncryptedDeviceContext; //0x0108 	//encrypted ID3D11DeviceContext*
+	__int64 m_EncryptedDevice; //0x0110 		//encrypted ID3D11Device*
+	__int64 m_D3d11; //0x0118 					//encrypted d3d11.dll
 };
 
 __int64 __fastcall PointerXorMultiplayer(__int64 ValueToXor /*RCX*/, __int64 EncryptedBuffer /*RDX*/, __int64 EncryptedDeviceContext /*R8*/ )
@@ -79,24 +75,61 @@ __int64 __fastcall PointerXorMultiplayer(__int64 ValueToXor /*RCX*/, __int64 Enc
 
 __int64 __fastcall PointerXorSinglePlayer(__int64 RCX )
 {
-	return RCX ^ 0x598447EFD7A36912i64;
+	return RCX ^ 0x598447EFD7A36912ui64;
 }
 
 //So its 2019 if you still use a shitty external in c# you can do the following:
 //	Before you join any server make sure your external is running.
-//	You need to keep the UpdateTimer inside the ObfuscationMgr below 24000
-//	then the ObfuscationMgr will NEVER activate the multiplayer encryption!
+//	with this code the ObfuscationMgr will NEVER activate the multiplayer encryption!
 
-void TrickObfuscationMgr()
+//pattern: 49 89 E3 49 89 5B 08 49 89 6B 18 49 89 73 20 57 48 83 EC 40 45 31 C9
+static BYTE* OFFSET_DecryptPointerMultiplayer = NULL; //0x147D03E00
+static BYTE* OFFSET_DecryptPointerMultiplayerJmp = NULL; //0x1415DFB50
+void BypassObfuscationMgr()
 {
+	 
+	if ( OFFSET_DecryptPointerMultiplayer == NULL )
+	{
+		OFFSET_DecryptPointerMultiplayer = FindPattern( (BYTE*)0x140001000, ~0, (BYTE*)"\x49\x89\xE3\x49\x89\x5B\x08\x49\x89\x6B\x18\x49\x89\x73\x20\x57\x48\x83\xEC\x40\x45\x31\xC9","xxxxxxxxxxxxxxxxxxxxxxx");
+		for (BYTE* p = (BYTE*)0x140001000; p ; p++)
+		{
+			if (p[0] != 0xE9) 
+				continue;
+			BYTE* Fnc = (BYTE*)ResolveRelativePtr( p + 1 );
+			if ( Fnc != OFFSET_DecryptPointerMultiplayer )
+				continue;
+			
+			OFFSET_DecryptPointerMultiplayerJmp = p;
+			break;
+		}
+	}
+	//place the singleplayer encryption code into the multiplayer encryption function:
+	static bool g_bPatchFunction = true;
+	if (g_bPatchFunction)
+	{
+		
+		BYTE DecryptSinglePlayer[] = {
+			0xC6, 0x44, 0x24, 0x08, 0x12,	//mov     byte ptr [rsp+arg_0], 12h
+			0xC6, 0x44, 0x24, 0x09, 0x69,	//mov     byte ptr [rsp+arg_0+1], 69h
+			0xC6, 0x44, 0x24, 0x0A, 0xA3,	//mov     byte ptr [rsp+arg_0+2], 0A3h
+			0xC6, 0x44, 0x24, 0x0B, 0xD7,	//mov     byte ptr [rsp+arg_0+3], 0D7h
+			0xC6, 0x44, 0x24, 0x0C, 0xEF,	//mov     byte ptr [rsp+arg_0+4], 0EFh
+			0xC6, 0x44, 0x24, 0x0D, 0x47,	//mov     byte ptr [rsp+arg_0+5], 47h
+			0xC6, 0x44, 0x24, 0x0E, 0x84,	//mov     byte ptr [rsp+arg_0+6], 84h
+			0xC6, 0x44, 0x24, 0x0F, 0x59,	//mov     byte ptr [rsp+arg_0+7], 59h
+			0x48, 0x8B, 0x44, 0x24, 0x08,	//mov     rax, [rsp+arg_0]
+			0x48, 0x31, 0xC8,      			//xor     rax, rcx
+			0xC3            				//retn
+		};
+
+		WriteProcessMemory( INVALID_HANDLE_VALUE, OFFSET_DecryptPointerMultiplayer, DecryptSinglePlayer, 49, NULL );
+		g_bPatchFunction = false;
+	}
 	_QWORD pObfuscationMgr = *(_QWORD*)OFFSET_ObfuscationMgr;
 	if (!ValidPointer(pObfuscationMgr)) return;
 
-	if ( *(__int64*)( pObfuscationMgr + 0x108 ) != NULL )
-		MessageBox( NULL, "u noob! Run ur shit before joining a server!", NULL, 16 );
-
-	//pObfuscationMgr->m_dwUpdateTimer = 0
-	*(__int64*)( pObfuscationMgr + 0xF0 ) = 0ui64; 
+	//pObfuscationMgr->m_DecryptionFunction = (_QWORD)OFFSET_DecryptPointerMultiplayerJmp  ^ pObfuscationMgr->m_E0;
+	*(_QWORD*)(pObfuscationMgr + 0x0F8 ) = (_QWORD)OFFSET_DecryptPointerMultiplayerJmp  ^ *(_QWORD*)(pObfuscationMgr + 0x0E0 );
 }
 
 _QWORD __fastcall PointerXor(_QWORD RCX, _QWORD RDX)
@@ -110,12 +143,30 @@ _QWORD __fastcall PointerXor(_QWORD RCX, _QWORD RDX)
 
 	_QWORD pObfuscationMgr = RCX - 8;
 
-	_QWORD EncryptedBuffer = *(_QWORD *)(pObfuscationMgr + 0x108);
-	_QWORD EncryptedDeviceContext = *(_QWORD *)(pObfuscationMgr + 0x110);
+	_QWORD EncryptedBuffer = *(_QWORD *)(pObfuscationMgr + 0x108 - 8);
+	_QWORD EncryptedDeviceContext = *(_QWORD *)(pObfuscationMgr + 0x110 - 8);
 
-	DWORD64 DecryptFunction = ( *(_QWORD *)(pObfuscationMgr + 0xE0) ^ *(_QWORD *)(pObfuscationMgr + 0x100) );
+	DWORD64 DecryptFunction = ( *(_QWORD *)(pObfuscationMgr + 0xE0) ^ *(_QWORD *)(pObfuscationMgr + 0x100 - 8) );
 	
-	if ( *(bool*)(pObfuscationMgr + 0xEC) != true || EncryptedBuffer == NULL || EncryptedDeviceContext == NULL )
+	//Index: 0 = singleplayer | 1 = MP
+	static DWORD64 DecryptionFunctions[2] = {0,0};
+
+	if ( DecryptionFunctions[0] != DecryptFunction &&
+		 DecryptionFunctions[1] != DecryptFunction )
+	{
+		DWORD64 FncCodeAddress = (DWORD64)DecryptFunction;
+		if (*(BYTE*)FncCodeAddress == 0xE9)
+			FncCodeAddress = (DWORD64)ResolveRelativePtr( (void*)( FncCodeAddress + 1 ) );
+		if ( *(WORD*)FncCodeAddress == 0x44C6 ) //Singleplayer
+		{
+			DecryptionFunctions[0] = DecryptFunction;
+		}
+		else
+			DecryptionFunctions[1] = DecryptFunction;
+	}
+
+	bool IsMultiPlayerEncryption = DecryptionFunctions[1] == DecryptFunction;
+	if ( IsMultiPlayerEncryption != true || EncryptedBuffer == NULL || EncryptedDeviceContext == NULL )
 		return (_QWORD)PointerXorSinglePlayer( RDX );
 	
 	return (_QWORD)PointerXorMultiplayer( RDX, EncryptedBuffer, EncryptedDeviceContext );
