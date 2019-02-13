@@ -43,5 +43,3 @@ hashtable_iterator<_QWORD> *__fastcall hashtable_find(hashtable<_QWORD>* table, 
 
 fb::ClientPlayer* GetPlayerById( int id );
 fb::ClientPlayer* GetLocalPlayer( void );
-
-void TrickObfuscationMgr();
