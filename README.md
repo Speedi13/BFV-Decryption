@@ -13,23 +13,7 @@ The decryption can also be done from an external program that is running in a di
 
 ## Note for external cheats
 So its 2019 if you still use a shitty external in c# you can do the following:<br />
-&nbsp;&nbsp;	Before you join any server make sure your external is running.<br />
-&nbsp;&nbsp;	You need to keep the UpdateTimer inside the ObfuscationMgr below 24000<br />
-&nbsp;&nbsp;	then the ObfuscationMgr will NEVER activate the sophisticated multiplayer encryption!<br />
-&nbsp;&nbsp;	For the singleplayer encryption look the function ``PointerXorSinglePlayer``<br />
-```cpp
-void TrickObfuscationMgr()
-{
-	_QWORD pObfuscationMgr = *(_QWORD*)OFFSET_ObfuscationMgr;
-	if (!ValidPointer(pObfuscationMgr)) return;
-
-	if ( *(__int64*)( pObfuscationMgr + 0x108 ) != NULL )
-		MessageBox( NULL, "u noob! Run ur shit before joining a server!", NULL, 16 );
-
-	//pObfuscationMgr->m_dwUpdateTimer = 0
-	*(__int64*)( pObfuscationMgr + 0xF0 ) = 0ui64; 
-}
-```
+https://github.com/Speedi13/BFV-Decryption/blob/master/BfvDecryptionDemo/ObfuscationMgr.cpp#L81
 
 ## Player-list decryption code
 ```cpp
@@ -39,7 +23,7 @@ fb::ClientPlayer* GetPlayerById( int id )
 	if (!ValidPointer(pObfuscationMgr)) return nullptr;
  
 	_QWORD PlayerListXorValue = *(_QWORD*)( (_QWORD)pPlayerManager + 0xF8 );
-	_QWORD PlayerListKey = PlayerListXorValue ^ *(_QWORD *)(pObfuscationMgr + 0xE0 /*old: 0x70*/);
+	_QWORD PlayerListKey = PlayerListXorValue ^ *(_QWORD *)(pObfuscationMgr + 0xE0 );
  
 	hashtable<_QWORD>* table = (hashtable<_QWORD>*)(pObfuscationMgr + 8 + 8);
 	hashtable_iterator<_QWORD> iterator = {0};
@@ -101,12 +85,30 @@ _QWORD __fastcall PointerXor(_QWORD RCX, _QWORD RDX)
 
 	_QWORD pObfuscationMgr = RCX - 8;
 
-	_QWORD EncryptedBuffer = *(_QWORD *)(pObfuscationMgr + 0x108);
-	_QWORD EncryptedDeviceContext = *(_QWORD *)(pObfuscationMgr + 0x110);
+	_QWORD EncryptedBuffer = *(_QWORD *)(pObfuscationMgr + 0x100);
+	_QWORD EncryptedDeviceContext = *(_QWORD *)(pObfuscationMgr + 0x108);
 
-	DWORD64 DecryptFunction = ( *(_QWORD *)(pObfuscationMgr + 0xE0) ^ *(_QWORD *)(pObfuscationMgr + 0x100) );
+	DWORD64 DecryptFunction = ( *(_QWORD *)(pObfuscationMgr + 0xE0) ^ *(_QWORD *)(pObfuscationMgr + 0xF8) );
 	
-	if ( *(bool*)(pObfuscationMgr + 0xEC) != true )
+	//Index: 0 = singleplayer | 1 = MP
+	static DWORD64 DecryptionFunctions[2] = {0,0};
+
+	if ( DecryptionFunctions[0] != DecryptFunction &&
+		 DecryptionFunctions[1] != DecryptFunction )
+	{
+		DWORD64 FncCodeAddress = (DWORD64)DecryptFunction;
+		if (*(BYTE*)FncCodeAddress == 0xE9)
+			FncCodeAddress = (DWORD64)ResolveRelativePtr( (void*)( FncCodeAddress + 1 ) );
+		if ( *(WORD*)FncCodeAddress == 0x44C6 ) //Singleplayer
+		{
+			DecryptionFunctions[0] = DecryptFunction;
+		}
+		else
+			DecryptionFunctions[1] = DecryptFunction;
+	}
+
+	bool IsMultiPlayerEncryption = DecryptionFunctions[1] == DecryptFunction;
+	if ( IsMultiPlayerEncryption != true || EncryptedBuffer == NULL || EncryptedDeviceContext == NULL )
 		return (_QWORD)PointerXorSinglePlayer( RDX );
 	
 	return (_QWORD)PointerXorMultiplayer( RDX, EncryptedBuffer, EncryptedDeviceContext );
