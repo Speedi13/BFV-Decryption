@@ -1,8 +1,8 @@
 #pragma once
 #include <Windows.h>
 
-#define OFFSET_CLIENTGAMECONTEXT 0x144468F38
-#define OFFSET_ObfuscationMgr 0x14412BB90
+#define OFFSET_CLIENTGAMECONTEXT 0x144473C18
+#define OFFSET_ObfuscationMgr 0x14412EC10
 
 BYTE* FindPattern(BYTE* dwAddress, DWORD dwSize, BYTE* pbSig, char* szMask);
 void BypassObfuscationMgr();
@@ -136,7 +136,7 @@ namespace fb
 					__int32 Offset = *(__int32*)&fncGetCharacterEntity[1];
 					fncGetCharacterEntity = &fncGetCharacterEntity[1] + Offset + sizeof(__int32);
 				}
-				SoldierOffset = *(DWORD*)&fncGetCharacterEntity[3]; //48 8B 81 38 1D 00 00	mov     rax, [rcx+1D38h]
+				SoldierOffset = *(DWORD*)&fncGetCharacterEntity[3]; //48 8B 81 38 1D 00 00	mov     rax, [rcx+1D48h]
 			}
 			WeakPtr<ClientSoldierEntity> m_soldier = *(WeakPtr<ClientSoldierEntity>*)( (DWORD_PTR)this + SoldierOffset ) ;
 
