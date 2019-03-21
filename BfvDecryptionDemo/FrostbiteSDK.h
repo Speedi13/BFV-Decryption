@@ -1,8 +1,8 @@
 #pragma once
 #include <Windows.h>
 
-#define OFFSET_CLIENTGAMECONTEXT 0x144473C18
-#define OFFSET_ObfuscationMgr 0x14412EC10
+#define OFFSET_CLIENTGAMECONTEXT 0x1444AD7D0
+#define OFFSET_ObfuscationMgr 0x14416F2E0
 
 BYTE* FindPattern(BYTE* dwAddress, DWORD dwSize, BYTE* pbSig, char* szMask);
 void BypassObfuscationMgr();
