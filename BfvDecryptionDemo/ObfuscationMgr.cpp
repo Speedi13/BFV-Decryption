@@ -55,7 +55,7 @@ struct ObfuscationMgr
 
 __int64 __fastcall PointerXorMultiplayer(__int64 ValueToXor /*RCX*/, __int64 EncryptedBuffer /*RDX*/, __int64 EncryptedDeviceContext /*R8*/ )
 {
-	__int64 XorD3D11 = 0xAB541E6F771275BCui64;
+	__int64 XorD3D11 = 0x2CE4356EA77515AEui64;
 
 	ID3D11DeviceContext* pDeviceContext = (ID3D11DeviceContext*)( EncryptedDeviceContext ^ XorD3D11 );
 	ID3D11Buffer* pBuffer = (ID3D11Buffer*)( EncryptedBuffer ^ XorD3D11 );
