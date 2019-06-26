@@ -11,10 +11,6 @@ The decryption can also be done from an external program that is running in a di
 <br>
 [ConsoleOutput.txt](https://github.com/Speedi13/BFV-Decryption/blob/master/ConsoleOutput.txt)
 
-## Note for external cheats
-So its 2019 if you still use a shitty external in c# you can do the following:<br />
-https://github.com/Speedi13/BFV-Decryption/blob/master/BfvDecryptionDemo/ObfuscationMgr.cpp#L81
-
 ## Player-list decryption code
 ```cpp
 fb::ClientPlayer* GetPlayerById( int id )
@@ -52,7 +48,7 @@ fb::ClientPlayer* EncryptedPlayerMgr__GetPlayer( QWORD EncryptedPlayerMgr, int i
 }
 __int64 __fastcall PointerXorMultiplayer(__int64 ValueToXor /*RCX*/, __int64 EncryptedBuffer /*RDX*/, __int64 EncryptedDeviceContext /*R8*/ )
 {
-	__int64 XorD3D11 = 0xAB541E6F771275BCui64;
+	__int64 XorD3D11 = 0x2CE4356EA77515AEui64;
 
 	ID3D11DeviceContext* pDeviceContext = (ID3D11DeviceContext*)( EncryptedDeviceContext ^ XorD3D11 );
 	ID3D11Buffer* pBuffer = (ID3D11Buffer*)( EncryptedBuffer ^ XorD3D11 );
