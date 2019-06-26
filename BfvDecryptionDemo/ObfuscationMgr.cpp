@@ -1,4 +1,5 @@
 #include "ObfuscationMgr.h"
+void* OFFSET_ObfuscationMgr = 0;
 
 //In case you don't want to Include the whole directx library
 #if !defined(D3DX11_SDK_VERSION)
@@ -78,60 +79,6 @@ __int64 __fastcall PointerXorSinglePlayer(__int64 RCX )
 	return RCX ^ 0x598447EFD7A36912ui64;
 }
 
-//So its 2019 if you still use a shitty external in c# you can do the following:
-//	Before you join any server make sure your external is running.
-//	with this code the ObfuscationMgr will NEVER activate the multiplayer encryption!
-
-//pattern: 49 89 E3 49 89 5B 08 49 89 6B 18 49 89 73 20 57 48 83 EC 40 45 31 C9
-static BYTE* OFFSET_DecryptPointerMultiplayer = NULL; //0x147D03E00
-static BYTE* OFFSET_DecryptPointerMultiplayerJmp = NULL; //0x1415DFB50
-void BypassObfuscationMgr()
-{
-	 
-	if ( OFFSET_DecryptPointerMultiplayer == NULL )
-	{
-		OFFSET_DecryptPointerMultiplayer = FindPattern( (BYTE*)0x140001000, ~0, (BYTE*)"\x49\x89\xE3\x49\x89\x5B\x08\x49\x89\x6B\x18\x49\x89\x73\x20\x57\x48\x83\xEC\x40\x45\x31\xC9","xxxxxxxxxxxxxxxxxxxxxxx");
-		for (BYTE* p = (BYTE*)0x140001000; p ; p++)
-		{
-			if (p[0] != 0xE9) 
-				continue;
-			BYTE* Fnc = (BYTE*)ResolveRelativePtr( p + 1 );
-			if ( Fnc != OFFSET_DecryptPointerMultiplayer )
-				continue;
-			
-			OFFSET_DecryptPointerMultiplayerJmp = p;
-			break;
-		}
-	}
-	//place the singleplayer encryption code into the multiplayer encryption function:
-	static bool g_bPatchFunction = true;
-	if (g_bPatchFunction)
-	{
-		
-		BYTE DecryptSinglePlayer[] = {
-			0xC6, 0x44, 0x24, 0x08, 0x12,	//mov     byte ptr [rsp+arg_0], 12h
-			0xC6, 0x44, 0x24, 0x09, 0x69,	//mov     byte ptr [rsp+arg_0+1], 69h
-			0xC6, 0x44, 0x24, 0x0A, 0xA3,	//mov     byte ptr [rsp+arg_0+2], 0A3h
-			0xC6, 0x44, 0x24, 0x0B, 0xD7,	//mov     byte ptr [rsp+arg_0+3], 0D7h
-			0xC6, 0x44, 0x24, 0x0C, 0xEF,	//mov     byte ptr [rsp+arg_0+4], 0EFh
-			0xC6, 0x44, 0x24, 0x0D, 0x47,	//mov     byte ptr [rsp+arg_0+5], 47h
-			0xC6, 0x44, 0x24, 0x0E, 0x84,	//mov     byte ptr [rsp+arg_0+6], 84h
-			0xC6, 0x44, 0x24, 0x0F, 0x59,	//mov     byte ptr [rsp+arg_0+7], 59h
-			0x48, 0x8B, 0x44, 0x24, 0x08,	//mov     rax, [rsp+arg_0]
-			0x48, 0x31, 0xC8,      			//xor     rax, rcx
-			0xC3            				//retn
-		};
-
-		WriteProcessMemory( INVALID_HANDLE_VALUE, OFFSET_DecryptPointerMultiplayer, DecryptSinglePlayer, 49, NULL );
-		g_bPatchFunction = false;
-	}
-	_QWORD pObfuscationMgr = *(_QWORD*)OFFSET_ObfuscationMgr;
-	if (!ValidPointer(pObfuscationMgr)) return;
-
-	//pObfuscationMgr->m_DecryptionFunction = (_QWORD)OFFSET_DecryptPointerMultiplayerJmp  ^ pObfuscationMgr->m_E0;
-	*(_QWORD*)(pObfuscationMgr + 0x0F8 ) = (_QWORD)OFFSET_DecryptPointerMultiplayerJmp  ^ *(_QWORD*)(pObfuscationMgr + 0x0E0 );
-}
-
 _QWORD __fastcall PointerXor(_QWORD RCX, _QWORD RDX)
 {
 //original function code from sub_1415780F0
@@ -188,8 +135,7 @@ fb::ClientPlayer* GetPlayerById( int id )
 	fb::ClientPlayerManager* pPlayerManager = pClientGameContext->m_clientPlayerManager;
 	if (!ValidPointer(pPlayerManager)) return nullptr;
  
-	_QWORD pObfuscationMgr = *(_QWORD*)OFFSET_ObfuscationMgr;
-	if (!ValidPointer(pObfuscationMgr)) return nullptr;
+	_QWORD pObfuscationMgr = (_QWORD)OFFSET_ObfuscationMgr;
  
 	_QWORD PlayerListXorValue = *(_QWORD*)( (_QWORD)pPlayerManager + 0xF8 );
 	_QWORD PlayerListKey = PlayerListXorValue ^ *(_QWORD *)(pObfuscationMgr + 0xE0 );
@@ -217,8 +163,7 @@ fb::ClientPlayer* GetLocalPlayer( void )
 	fb::ClientPlayerManager* pPlayerManager = pClientGameContext->m_clientPlayerManager;
 	if (!ValidPointer(pPlayerManager)) return nullptr;
  
-	_QWORD pObfuscationMgr = *(_QWORD*)OFFSET_ObfuscationMgr;
-	if (!ValidPointer(pObfuscationMgr)) return nullptr;
+	_QWORD pObfuscationMgr = (_QWORD)OFFSET_ObfuscationMgr;
  
 	_QWORD LocalPlayerListXorValue = *(_QWORD*)( (_QWORD)pPlayerManager + 0xF0 );
 	_QWORD LocalPlayerListKey = LocalPlayerListXorValue ^ *(_QWORD *)(pObfuscationMgr + 0xE0 );
@@ -276,9 +221,7 @@ LABEL_4:
 
 void* DecryptPointer( DWORD64 EncryptedPtr, DWORD64 PointerKey )
 {
-	_QWORD pObfuscationMgr = *(_QWORD*)OFFSET_ObfuscationMgr;
-	if (!ValidPointer(pObfuscationMgr))
-		return nullptr;
+	_QWORD pObfuscationMgr = (_QWORD)OFFSET_ObfuscationMgr;
  
 	if ( !(EncryptedPtr & 0x8000000000000000) )
 		return nullptr; //invalid ptr
@@ -315,4 +258,67 @@ void* DecryptPointer( DWORD64 EncryptedPtr, DWORD64 PointerKey )
 	DecryptedPtr &= ~( 0x8000000000000000 ); //to exclude the check bit
  
 	return (void*)DecryptedPtr;
+}
+
+
+void* GetObfuscationMgr()
+{
+	////////////////////////////////////////////////////////////// Shellcodes //////////////////////////////////////////////////////////////
+	BYTE getObfuscationMgrShellCode[] =	{
+		0x48, 0x8B, 0x04, 0x24,												//mov rax,[rsp]
+		0x8B, 0x40, 0xF0,													//mov eax,[rax-10]
+		0x3D, 0x1D, 0x51, 0x8C, 0x4D,										//cmp eax,4D8C511D
+		0x75, 0x07,															//jne [RIP+9]
+		0x48, 0x89, 0x0d, 0x1B, 0x00, 0x00, 0x00,							//mov [RIP+1B],rcx
+		0x65, 0x48, 0xA1, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	//mov rax,gs:[00000030]
+		0x8B, 0x40, 0x48,													//mov eax,[rax+48]
+		0xC3,																//ret
+
+		//Buffer to store the obf mgr addr:
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	};
+	BYTE OirignalFunctionCode[14] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+	BYTE JumpToShellcode[14] = { 0xFF, 0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	HANDLE hProcessHandle = GetCurrentProcess();
+
+	//the kernel32 and nt-dll is mapped to the same virtual address for every process ;)
+	HMODULE hKernel32 = GetModuleHandleW(L"kernel32.dll");
+	//lookup the address of the exported function "GetCurrentThreadId"
+	void* GetCurrentThreadIdFunctionAddr = (void*)GetProcAddress( hKernel32, "GetCurrentThreadId" );
+
+	//allocate memory for the shellcode which will retrieve the obfuscation mgr address 
+	void* ShellCodeAddr = VirtualAllocEx( hProcessHandle, NULL, 0x1000, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE );
+
+	//write the shellcode into the allocated memory
+	WriteProcessMemory( hProcessHandle, ShellCodeAddr, getObfuscationMgrShellCode, 52, nullptr );
+
+	//write the address of the main shellcode into the jump shellcode
+	*(void**)&JumpToShellcode[6] = ShellCodeAddr;
+
+	//read the original code of the GetCurrentThreadId function to restore it later
+	ReadProcessMemory( hProcessHandle, GetCurrentThreadIdFunctionAddr, OirignalFunctionCode, 14, nullptr );
+
+	//write jump to shellcode into the GetCurrentThreadId function
+	WriteProcessMemory( hProcessHandle, GetCurrentThreadIdFunctionAddr, JumpToShellcode, 14, nullptr );
+
+	void* ObfuscationMgr = (void*)(nullptr);
+	void* ShellCodeResultAddr = (void*)( (char*)ShellCodeAddr+0x30 );
+
+	//wait for shellcode to retrieve the obfuscation mgr address 
+	do
+	{
+		Sleep( 100 ); 
+		ReadProcessMemory( hProcessHandle, ShellCodeResultAddr, &ObfuscationMgr, sizeof(void*), nullptr );
+	} while ( !ObfuscationMgr );
+
+	//restore the original function code
+	WriteProcessMemory( hProcessHandle, GetCurrentThreadIdFunctionAddr, OirignalFunctionCode, 14, nullptr );
+
+	Sleep( 500 );//wait to make sure its not executed anymore
+
+	VirtualFreeEx( hProcessHandle, ShellCodeAddr, NULL, MEM_RELEASE );
+
+	return ObfuscationMgr;
 }
