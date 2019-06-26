@@ -1,8 +1,8 @@
 #pragma once
 #include <Windows.h>
 
-#define OFFSET_CLIENTGAMECONTEXT 0x144ABDFC8
-#define OFFSET_ObfuscationMgr 0x1447565D0
+#define OFFSET_CLIENTGAMECONTEXT 0x144A53220
+extern void* OFFSET_ObfuscationMgr;
 
 BYTE* FindPattern(BYTE* dwAddress, DWORD dwSize, BYTE* pbSig, char* szMask);
 void BypassObfuscationMgr();
@@ -100,7 +100,7 @@ namespace fb
 
 		void GetTransform( LinearTransform* OutMatrix )
 		{
-			DWORD_PTR m_collection = *(DWORD_PTR *)( (DWORD_PTR)this  + 0x38);
+			DWORD_PTR m_collection = *(DWORD_PTR *)( (DWORD_PTR)this + 0x40);
 			unsigned __int8 _9 = *(unsigned __int8 *)(m_collection + 9);
 			unsigned __int8 _10 = *(unsigned __int8 *)(m_collection + 10);
 
