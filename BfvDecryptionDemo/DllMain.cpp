@@ -17,7 +17,12 @@ DWORD WINAPI DllThread(PVOID pThreadParameter)
 	freopen("CONOUT$", "w", stdout); 
 	freopen("CONOUT$", "w", stderr); 
 
-	printf("DllThread started!");
+	printf("DllThread started!\n");
+
+
+	OFFSET_ObfuscationMgr = GetObfuscationMgr();
+	printf("OFFSET_ObfuscationMgr: 0x%I64X\n",OFFSET_ObfuscationMgr);
+
 	//Works for bf1 & bfv
 	//0F ?? ?? ?? ?? ?? 48 83 ?? ?? ?? 00 00 00 0F 84 ?? ?? ?? ?? 48 83 ?? ?? ?? 00 00 00 75 ?? ?? ?? ?? E9
 
