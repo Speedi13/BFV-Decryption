@@ -15,7 +15,7 @@ The decryption can also be done from an external program that is running in a di
 ```cpp
 fb::ClientPlayer* GetPlayerById( int id )
 {
-	_QWORD pObfuscationMgr = *(_QWORD*)OFFSET_ObfuscationMgr;
+	_QWORD pObfuscationMgr = (_QWORD)OFFSET_ObfuscationMgr;
 	if (!ValidPointer(pObfuscationMgr)) return nullptr;
  
 	_QWORD PlayerListXorValue = *(_QWORD*)( (_QWORD)pPlayerManager + 0xF8 );
@@ -116,7 +116,7 @@ The pointer key is usually the start address of the class that contains the encr
 ```cpp
 void* DecryptPointer( DWORD64 EncryptedPtr, DWORD64 PointerKey )
 {
-	_QWORD pObfuscationMgr = *(_QWORD*)OFFSET_ObfuscationMgr;
+	_QWORD pObfuscationMgr = (_QWORD)OFFSET_ObfuscationMgr;
 	if (!ValidPointer(pObfuscationMgr))
 		return nullptr;
  
