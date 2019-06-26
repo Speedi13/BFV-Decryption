@@ -1,6 +1,8 @@
 #pragma once
 #include "FrostbiteSDK.h"
 
+void* GetObfuscationMgr();
+
 typedef DWORD64 QWORD;
 typedef QWORD _QWORD;
 
