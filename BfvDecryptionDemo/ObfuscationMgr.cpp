@@ -322,3 +322,101 @@ void* GetObfuscationMgr()
 
 	return ObfuscationMgr;
 }
+
+
+///////////////////////////////////////////////////// SHELLCODE /////////////////////////////////////////////////////
+BYTE getMultiplayerXorKey__shellcode[] = {
+ //ObfMgrAddr (+0x00)
+ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ //Result: (+0x08)
+ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ //function code start: (+0x10)
+ 0x4C, 0x8B, 0xDC,                                              //- mov r11,rsp
+ 0x49, 0x89, 0x5B, 0x08,                                        //- mov [r11+08],rbx
+ 0x49, 0x89, 0x73, 0x10,                                        //- mov [r11+10],rsi
+ 0x57,                                                          //- push rdi
+ 0x48, 0x83, 0xEC, 0x40,                                        //- sub rsp,40
+ 0x48, 0xB9, 0xAE, 0x15, 0x75, 0xA7, 0x6E, 0x35, 0xE4, 0x2C,    //- mov rcx,2CE4356EA77515AE
+ 0x48, 0x8B, 0x05, 0xCF, 0xFF, 0xFF, 0xFF,                      //- mov rax,[RIP-31]
+ 0x41, 0xB9, 0x01, 0x00, 0x00, 0x00,                            //- mov r9d,00000001
+ 0x45, 0x33, 0xC0,                                              //- xor r8d,r8d
+ 0x48, 0x8B, 0xB8, 0x08, 0x01, 0x00, 0x00,                      //- mov rdi,[rax+00000108]
+ 0x48, 0x8B, 0xB0, 0x00, 0x01, 0x00, 0x00,                      //- mov rsi,[rax+00000100]
+ 0x48, 0x33, 0xF9,                                              //- xor rdi,rcx
+ 0x48, 0x33, 0xF1,                                              //- xor rsi,rcx
+ 0x49, 0x8D, 0x4B, 0xE8,                                        //- lea rcx,[r11-18]
+ 0x48, 0x8B, 0x07,                                              //- mov rax,[rdi]
+ 0x49, 0x89, 0x4B, 0xE0,                                        //- mov [r11-20],rcx
+ 0x83, 0x64, 0x24, 0x20, 0x00,                                  //- and dword ptr [rsp+20],00
+ 0x48, 0x8B, 0xD6,                                              //- mov rdx,rsi
+ 0x48, 0x8B, 0xCF,                                              //- mov rcx,rdi
+ 0xFF, 0x50, 0x70,                                              //- call qword ptr [rax+70]
+ 0x85, 0xC0,                                                    //- test eax,eax
+ 0x78, 0x2B,                                                    //- js [RIP+0x2d]
+ 0x48, 0x8B, 0x5C, 0x24, 0x30,                                  //- mov rbx,[rsp+30]
+ 0x48, 0x85, 0xDB,                                              //- test rbx,rbx
+ 0x74, 0x21,                                                    //- je [RIP+0x23]
+ 0x4C, 0x8B, 0x0F,                                              //- mov r9,[rdi]
+ 0x48, 0x8B, 0x1B,                                              //- mov rbx,[rbx]
+ 0x45, 0x33, 0xC0,                                              //- xor r8d,r8d
+ 0x48, 0x8B, 0xD6,                                              //- mov rdx,rsi
+ 0x48, 0x8B, 0xCF,                                              //- mov rcx,rdi
+ 0x41, 0xFF, 0x51, 0x78,                                        //- call qword ptr [r9+78]
+ 0x48, 0x8B, 0xC3,                                              //- mov rax,rbx
+ 0x48, 0x89, 0x05, 0x76, 0xFF, 0xFF, 0xFF,                      //- mov [RIP-8A],rax
+ 0x33, 0xC0,                                                    //- xor eax,eax
+ 0xEB, 0x05,                                                    //- jmp [RIP+0x7]
+ 0xB8, 0xE9, 0x03, 0x00, 0x00,                                  //- mov eax,000003E9
+ 0x48, 0x8B, 0x5C, 0x24, 0x50,                                  //- mov rbx,[rsp+50]
+ 0x48, 0x8B, 0x74, 0x24, 0x58,                                  //- mov rsi,[rsp+58]
+ 0x48, 0x83, 0xC4, 0x40,                                        //- add rsp,40
+ 0x5F,                                                          //- pop rdi
+ 0xC3,                                                          //- ret 
+};
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//the following code is retrieving the multiplayer xor key that gets stored on the graphics card in a way that should be easy to implement into an external cheat.
+__int64 getMultiplayerXorKey( void* ObfMgr )
+{
+	HANDLE hProcessHandle = GetCurrentProcess();
+
+	//check if any of the following values is zero
+	/*
+	__int64 m_EncryptedBuffer; //0x0100  		//encrypted ID3D11Buffer*
+	__int64 m_EncryptedDeviceContext; //0x0108 	//encrypted ID3D11DeviceContext*
+	__int64 m_EncryptedDevice; //0x0110 		//encrypted ID3D11Device*
+	__int64 m_D3d11; //0x0118 			//encrypted d3d11.dll
+	*/
+	for (int i = 0; i < 4; i++)
+	{
+		__int64 value = *(__int64 *)( (char*)ObfMgr + 0x100 + (i * 8) );
+		if (value == 0) return 0;
+	}
+
+	//allocate memory for the shellcode which will retrieve the multiplayer xor key
+	void* ShellCodeAddr = VirtualAllocEx( hProcessHandle, NULL, 0x1000, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE );
+
+	//write the shellcode into the allocated memory
+	WriteProcessMemory( hProcessHandle, ShellCodeAddr, getMultiplayerXorKey__shellcode, 171, nullptr );
+
+	//write the address of the obfuscation mgr into the shellcode:
+	WriteProcessMemory( hProcessHandle, ShellCodeAddr, &ObfMgr, 8, nullptr );
+
+	void* ShellCodeResultAddr = (void*)( (char*)ShellCodeAddr+0x8 );
+	void* ShellCodeStartAddr = (void*)( (char*)ShellCodeAddr+0x10 );
+
+	//start the shellcode:
+	HANDLE hThreadHandle = CreateRemoteThread( hProcessHandle, nullptr, NULL, (LPTHREAD_START_ROUTINE)ShellCodeStartAddr, nullptr, NULL, nullptr );
+
+	//wait for the code to finish
+	while ( WaitForSingleObject(hThreadHandle, 0) == WAIT_TIMEOUT  )
+		Sleep( 100 );
+
+	//retrieve the result:
+	__int64 MultiplayerXorKey = 0;
+	ReadProcessMemory( hProcessHandle, ShellCodeResultAddr, &MultiplayerXorKey, 8, nullptr );
+
+	//free the shellcode:
+	VirtualFreeEx( hProcessHandle, ShellCodeAddr, NULL, MEM_RELEASE );
+
+	return MultiplayerXorKey;
+}
