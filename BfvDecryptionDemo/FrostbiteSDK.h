@@ -8,7 +8,7 @@ BYTE* FindPattern(BYTE* dwAddress, DWORD dwSize, BYTE* pbSig, char* szMask);
 void BypassObfuscationMgr();
 
 #define ResolveRelativePtr(Address) ((ULONG_PTR)(Address) + *(__int32*)(Address) + sizeof(__int32))
-#define ValidPointer( pointer ) ( pointer != NULL && (DWORD_PTR)pointer >= 0x10000 && (DWORD_PTR)pointer < 0x000F000000000000 /*&& some other checks*/ )
+#define ValidPointer( pointer ) ( pointer != NULL && (DWORD_PTR)pointer >= 0x10000 && (DWORD_PTR)pointer < 0x00007FFFFFFEFFFF /*&& some other checks*/ )
 
 extern DWORD OFFSET_PredictedController;
 void* DecryptPointer( DWORD64 EncryptedPtr, DWORD64 PointerKey );
@@ -30,10 +30,10 @@ namespace fb
 	public:
 		T* GetData() // << the function in question
 		{
-			if (!ValidPointer( m_ptr ))
+			if (!ValidPointer( this->m_ptr ))
     				return NULL;
 
-			if (!ValidPointer( &m_ptr->m_realptr ))
+			if (!ValidPointer( &this->m_ptr->m_realptr ))
     				return NULL;
      
 			T* ptr = m_ptr->m_realptr;
