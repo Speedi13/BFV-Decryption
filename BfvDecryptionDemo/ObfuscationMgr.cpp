@@ -60,12 +60,14 @@ __int64 __fastcall PointerXorMultiplayer(__int64 ValueToXor /*RCX*/, __int64 Enc
 
 	ID3D11DeviceContext* pDeviceContext = (ID3D11DeviceContext*)( EncryptedDeviceContext ^ XorD3D11 );
 	ID3D11Buffer* pBuffer = (ID3D11Buffer*)( EncryptedBuffer ^ XorD3D11 );
+	if ( !ValidPointer(pDeviceContext) || !ValidPointer(pBuffer) ) 
+		return 0;
 
-	D3D11_MAPPED_SUBRESOURCE MappedSubResource = {0};
+	D3D11_MAPPED_SUBRESOURCE MappedSubResource = {};
 
 	HRESULT hResult = pDeviceContext->Map( pBuffer, NULL, D3D11_MAP_READ, NULL, &MappedSubResource );
 	if ( !SUCCEEDED(hResult) || !MappedSubResource.pData )
-		return ValueToXor;
+		return 0;
 
 	__int64 XorKey = *(__int64 *)MappedSubResource.pData;
 
@@ -90,10 +92,11 @@ _QWORD __fastcall PointerXor(_QWORD RCX, _QWORD RDX)
 
 	_QWORD pObfuscationMgr = RCX - 8;
 
-	_QWORD EncryptedBuffer = *(_QWORD *)(pObfuscationMgr + 0x108 - 8);
-	_QWORD EncryptedDeviceContext = *(_QWORD *)(pObfuscationMgr + 0x110 - 8);
+	_QWORD EncryptedBuffer = *(_QWORD *)(pObfuscationMgr + 0x100 );
+	_QWORD EncryptedDeviceContext = *(_QWORD *)(pObfuscationMgr + 0x108 );
 
-	DWORD64 DecryptFunction = ( *(_QWORD *)(pObfuscationMgr + 0xE0) ^ *(_QWORD *)(pObfuscationMgr + 0x100 - 8) );
+	DWORD64 DecryptFunction = ( *(_QWORD *)(pObfuscationMgr + 0xE0) ^ *(_QWORD *)(pObfuscationMgr + 0x0F8 ) );
+	if ( !ValidPointer(DecryptFunction) ) return 0;
 	
 	//Index: 0 = singleplayer | 1 = MP
 	static DWORD64 DecryptionFunctions[2] = {0,0};
@@ -123,7 +126,7 @@ fb::ClientPlayer* EncryptedPlayerMgr__GetPlayer( QWORD EncryptedPlayerMgr, int i
 {
 	_QWORD XorValue1 = *(_QWORD *)(EncryptedPlayerMgr + 0x20) ^ *(_QWORD *)(EncryptedPlayerMgr + 8);
 	_QWORD XorValue2 = PointerXor(    *(_QWORD *)(EncryptedPlayerMgr + 0x28),
-									  *(_QWORD *)(EncryptedPlayerMgr + 0x10) );
+                                          *(_QWORD *)(EncryptedPlayerMgr + 0x10) );
 	if (!ValidPointer(XorValue2)) return nullptr;
 	_QWORD Player = XorValue1 ^ *(_QWORD *)( XorValue2 + 8 * id);
 	return (fb::ClientPlayer*)Player;
@@ -140,13 +143,13 @@ fb::ClientPlayer* GetPlayerById( int id )
 	_QWORD PlayerListXorValue = *(_QWORD*)( (_QWORD)pPlayerManager + 0xF8 );
 	_QWORD PlayerListKey = PlayerListXorValue ^ *(_QWORD *)(pObfuscationMgr + 0xE0 );
  
-	hashtable<_QWORD>* table = (hashtable<_QWORD>*)(pObfuscationMgr + 8 + 8);
-	hashtable_iterator<_QWORD> iterator = {0};
+	hashtable<_QWORD>* table = (hashtable<_QWORD>*)(pObfuscationMgr + 0x10);
+	hashtable_iterator<_QWORD> iterator = {};
  
 	hashtable_find(table, &iterator, PlayerListKey);
 	if ( iterator.mpNode == table->mpBucketArray[table->mnBucketCount] )
 		return nullptr;
-	if (!ValidPointer(iterator.mpNode)) return nullptr;
+	if (!ValidPointer(iterator.mpNode) || iterator.mpNode->mValue.first != PlayerListKey) return nullptr;
 	_QWORD EncryptedPlayerMgr = (_QWORD)iterator.mpNode->mValue.second;
 	if (!ValidPointer(EncryptedPlayerMgr)) return nullptr;
  
@@ -168,13 +171,13 @@ fb::ClientPlayer* GetLocalPlayer( void )
 	_QWORD LocalPlayerListXorValue = *(_QWORD*)( (_QWORD)pPlayerManager + 0xF0 );
 	_QWORD LocalPlayerListKey = LocalPlayerListXorValue ^ *(_QWORD *)(pObfuscationMgr + 0xE0 );
  
-	hashtable<_QWORD>* table = (hashtable<_QWORD>*)(pObfuscationMgr + 8 + 8);
-	hashtable_iterator<_QWORD> iterator = {0};
+	hashtable<_QWORD>* table = (hashtable<_QWORD>*)(pObfuscationMgr + 0x10);
+	hashtable_iterator<_QWORD> iterator = {};
  
 	hashtable_find(table, &iterator, LocalPlayerListKey);
 	if ( iterator.mpNode == table->mpBucketArray[table->mnBucketCount] )
 		return nullptr;
-	if (!ValidPointer(iterator.mpNode)) return nullptr;
+	if (!ValidPointer(iterator.mpNode) || iterator.mpNode->mValue.first != LocalPlayerListKey) return nullptr;
 
 	_QWORD EncryptedPlayerMgr = (_QWORD)iterator.mpNode->mValue.second;
 	if (!ValidPointer(EncryptedPlayerMgr)) return nullptr;
@@ -234,7 +237,7 @@ void* DecryptPointer( DWORD64 EncryptedPtr, DWORD64 PointerKey )
 	hashtable_find( table, &iterator, hashtableKey );
 	if ( iterator.mpNode == table->mpBucketArray[table->mnBucketCount] ) 
 		return nullptr;
-	if (!ValidPointer(iterator.mpNode))
+	if (!ValidPointer(iterator.mpNode) || iterator.mpNode->mValue.first != hashtableKey )
 		return nullptr;
 	_QWORD EncryptionKey = NULL;
 
@@ -265,14 +268,14 @@ void* GetObfuscationMgr()
 {
 	////////////////////////////////////////////////////////////// Shellcodes //////////////////////////////////////////////////////////////
 	BYTE getObfuscationMgrShellCode[] =	{
-		0x48, 0x8B, 0x04, 0x24,												//mov rax,[rsp]
-		0x8B, 0x40, 0xF0,													//mov eax,[rax-10]
-		0x3D, 0x1D, 0x51, 0x8C, 0x4D,										//cmp eax,4D8C511D
-		0x75, 0x07,															//jne [RIP+9]
-		0x48, 0x89, 0x0d, 0x1B, 0x00, 0x00, 0x00,							//mov [RIP+1B],rcx
-		0x65, 0x48, 0xA1, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	//mov rax,gs:[00000030]
-		0x8B, 0x40, 0x48,													//mov eax,[rax+48]
-		0xC3,																//ret
+		0x48, 0x8B, 0x04, 0x24,                                           //mov rax,[rsp]
+		0x8B, 0x40, 0xF0,                                                 //mov eax,[rax-10]
+		0x3D, 0x1D, 0x51, 0x8C, 0x4D,                                     //cmp eax,4D8C511D
+		0x75, 0x07,                                                       //jne [RIP+9]
+		0x48, 0x89, 0x0d, 0x1B, 0x00, 0x00, 0x00,                         //mov [RIP+1B],rcx
+		0x65, 0x48, 0xA1, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //mov rax,gs:[00000030]
+		0x8B, 0x40, 0x48,                                                 //mov eax,[rax+48]
+		0xC3,                                                             //ret
 
 		//Buffer to store the obf mgr addr:
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
