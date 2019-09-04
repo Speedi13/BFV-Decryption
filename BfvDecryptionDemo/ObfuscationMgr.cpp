@@ -140,7 +140,7 @@ fb::ClientPlayer* GetPlayerById( int id )
  
 	_QWORD pObfuscationMgr = (_QWORD)OFFSET_ObfuscationMgr;
  
-	_QWORD PlayerListXorValue = *(_QWORD*)( (_QWORD)pPlayerManager + 0xF8 );
+	_QWORD PlayerListXorValue = *(_QWORD*)( (_QWORD)pPlayerManager + 0x100 );
 	_QWORD PlayerListKey = PlayerListXorValue ^ *(_QWORD *)(pObfuscationMgr + 0xE0 );
  
 	hashtable<_QWORD>* table = (hashtable<_QWORD>*)(pObfuscationMgr + 0x10);
@@ -168,7 +168,7 @@ fb::ClientPlayer* GetLocalPlayer( void )
  
 	_QWORD pObfuscationMgr = (_QWORD)OFFSET_ObfuscationMgr;
  
-	_QWORD LocalPlayerListXorValue = *(_QWORD*)( (_QWORD)pPlayerManager + 0xF0 );
+	_QWORD LocalPlayerListXorValue = *(_QWORD*)( (_QWORD)pPlayerManager + 0xF8 );
 	_QWORD LocalPlayerListKey = LocalPlayerListXorValue ^ *(_QWORD *)(pObfuscationMgr + 0xE0 );
  
 	hashtable<_QWORD>* table = (hashtable<_QWORD>*)(pObfuscationMgr + 0x10);
