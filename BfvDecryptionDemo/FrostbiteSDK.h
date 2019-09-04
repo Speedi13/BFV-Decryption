@@ -1,7 +1,7 @@
 #pragma once
 #include <Windows.h>
 
-#define OFFSET_CLIENTGAMECONTEXT 0x144A46130
+#define OFFSET_CLIENTGAMECONTEXT 0x144722378
 extern void* OFFSET_ObfuscationMgr;
 
 BYTE* FindPattern(BYTE* dwAddress, DWORD dwSize, BYTE* pbSig, char* szMask);
@@ -72,8 +72,8 @@ namespace fb
 	public:
 		char _0x0000[0x20];
 		ClientPlayerManager* m_playerManager; //0x0020 
-		char _0x0028[0x40];
-		ClientPlayerManager* m_clientPlayerManager; //0x0068 
+		char _0x0028[0x40-8];
+		ClientPlayerManager* m_clientPlayerManager; //0x0060
 
 		static ClientGameContext* GetInstance()
 		{
