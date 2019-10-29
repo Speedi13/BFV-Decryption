@@ -1,7 +1,7 @@
 #pragma once
 #include <Windows.h>
 
-#define OFFSET_CLIENTGAMECONTEXT 0x1446A44D8
+#define OFFSET_CLIENTGAMECONTEXT 0x14461E518
 extern void* OFFSET_ObfuscationMgr;
 
 BYTE* FindPattern(BYTE* dwAddress, DWORD dwSize, BYTE* pbSig, char* szMask);
